@@ -1,0 +1,4 @@
+../Driver/scr/uart.c:5:6:UART1_init	4	static
+../Driver/scr/uart.c:22:6:UART1_Send_1byte	16	static
+../Driver/scr/uart.c:27:6:UART1_Send_String	16	static
+../Driver/scr/uart.c:31:6:UART1_Recv_1Byte	4	static

@@ -1,0 +1,3 @@
+../Driver/scr/delay.c:3:6:delay_init	1
+../Driver/scr/delay.c:13:6:delay_us	2
+../Driver/scr/delay.c:19:6:delay_ms	2
