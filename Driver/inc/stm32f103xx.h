@@ -12,6 +12,7 @@
 #include "stdio.h"
 #include "stddef.h"
 #include "stdint.h"
+#include "string.h"
 #define _vo   volatile
 #define __weak __attribute__((weak))
 
@@ -256,5 +257,7 @@ typedef struct
 #define USART2      ((UART_REG_t*)USART2_BASE)
 #define USART3      ((UART_REG_t*)USART3_BASE)
 
+
+#include "clock.h"
 
 #endif /* INC_STM32F103XX_H_ */

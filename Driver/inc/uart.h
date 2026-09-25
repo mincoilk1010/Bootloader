@@ -5,9 +5,9 @@
 
 extern char recv_data[20];
 extern int rx_index;
-void UART1_init();
+void UART1_init(u32 baud);
 void UART1_Send_1byte(char data);
-void UART1_Send_String(char *data, u32 len);
+void UART1_Send_String(char *msg);
 char UART1_Read(char *data, u32 timeout);
 void printlog(char *format, ...);
 #endif

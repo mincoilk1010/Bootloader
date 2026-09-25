@@ -16,22 +16,47 @@
  ******************************************************************************
  */
 
-#include <stdint.h>
+
 #include <stm32f103xx.h>
 #include <gpio.h>
 #include <delay.h>
 #include "clock.h"
+#include "uart.h"
 
 int main(void)
 {
   clock_init();
   delay_init();
+  //UART1_init(9600);
+  GPIOB_PCLK_EN();
+  GPIOA_PCLK_EN();
+  gpio_init(GPIOB, PIN_12, GPIO_OUTPUT_PP_50MHZ);
+  gpio_init(GPIOB, PIN_13, GPIO_OUTPUT_PP_50MHZ);
+  gpio_init(GPIOB, PIN_14, GPIO_OUTPUT_PP_50MHZ);
+  gpio_init(GPIOB, PIN_15, GPIO_OUTPUT_PP_50MHZ);
+  GPIOA->BSRR = (1 << 0);
+  gpio_init(GPIOA, PIN_0, GPIO_INPUT_PULL);
+  GPIOB->BRR = (1 << 12);
+  uint8_t cnt = 0;
 
   while(1)
   {
 
-
-
+	  if(gpio_read(GPIOA, PIN_0) == 0)
+	  {
+		  delay_ms(20);
+		  if(gpio_read(GPIOA, PIN_0) == 0)
+		  {
+			  cnt++;
+			  if(cnt > 15)
+			  {
+				 cnt = 0;
+			  }
+			  GPIOB->ODR &= ~(0x0F << 12);
+	          GPIOB->ODR |= ((uint32_t)cnt << 12);
+	          while (gpio_read(GPIOA, PIN_0) == 0);
+		  }
+	  }
 
   }
 

@@ -1,12 +1,13 @@
 #include "clock.h"
-#define TIM1_CLK_HZ 72
-void delay_init()
+
+void delay_init(void)
 {
     TIM1_PCLK_EN();
     TIM1->CR1 &= ~(1 << 0);
     TIM1->ARR  = 0Xffff;
     TIM1->CNT = 0;
-    TIM1->PSC = TIM1_CLK_HZ - 1;
+
+    TIM1->PSC = (SystemCoreClockHz / 1000000U) - 1U;
     TIM1->CR1 |= 1 << 0;
 
 }

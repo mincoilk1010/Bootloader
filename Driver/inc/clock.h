@@ -99,5 +99,8 @@ void clock_enable_AHB2(AHB2_peripheral_t peripheral);
 void clock_enable_APB1(APB1_peripheral_t peripheral);
 void clock_enable_APB2(APB2_peripheral_t peripheral);
 */
-void clock_init();
+/* Current HCLK/APB2 clock.  clock_init() keeps this at 8 MHz if HSE fails. */
+extern u32 SystemCoreClockHz;
+
+void clock_init(void);
 #endif

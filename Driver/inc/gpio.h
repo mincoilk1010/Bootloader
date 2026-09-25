@@ -24,15 +24,18 @@
 #define PIN_14       14
 #define PIN_15       15
 
-typdef enum
+typedef enum
 {
-    GPIO_MODE_INPUT = 0,
-    GPIO_MODE_OUTPUT_10MHZ = 1,
-    GPIO_MODE_OUTPUT_2MHZ = 2,
-    GPIO_MODE_OUTPUT_50MHZ = 3
+     GPIO_INPUT_FLOATING = 0x4,
+     GPIO_INPUT_PULL = 0x8,
+     GPIO_OUTPUT_PP_2MHZ = 0x2,
+     GPIO_OUTPUT_PP_10MHZ = 0x1,
+     GPIO_OUTPUT_PP_50MHZ = 0x3,
+     GPIO_AF_PP_50MHZ = 0xB
 } GPIO_Mode_t;
 
 void gpio_init(GPIO_REG_t *port, u8 pin, GPIO_Mode_t mode);
 void gpio_write(GPIO_REG_t *port, u8 pin, u8 value);
 u8 gpio_read(GPIO_REG_t *port, u8 pin);
+void gpio_toggle(GPIO_REG_t *port, u8 pin);
 #endif
