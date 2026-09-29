@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;bootloader/Core/Inc/flash_layout&apos; to &apos;flash_layout.h&apos;" description="Rename resource &apos;flash_layout&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Inc/flash_layout" name="flash_layout.h" stamp="1790652149938" updateReferences="true"/>
+</session>

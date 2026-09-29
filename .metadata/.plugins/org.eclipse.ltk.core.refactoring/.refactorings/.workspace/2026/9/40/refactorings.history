@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;bootloader/Core/Inc/flash_layout.h&apos;" deleteContents="false" description="Delete resource &apos;bootloader/Core/Inc/flash_layout.h&apos;" element1="/bootloader/Core/Inc/flash_layout.h" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1790652175489"/>
+</session>
