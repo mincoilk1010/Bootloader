@@ -91,7 +91,15 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(100);
   HAL_UART_Transmit(&huart1, (uint8_t*)"Inside Bootloader!!\r\n", 21, 100);
-
+  if(bootloader_is_app_valid() != 0) {
+	  HAL_UART_Transmit(&huart1, (uint8_t *)"Failed to Jump!!\r\n", 18, 100);
+	  while (1)
+	  	  {
+		  	  //If led toggle -> error
+	          HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
+	          HAL_Delay(100);
+	      }
+  }
   JumptoApplication();
   /* USER CODE END 2 */
 
@@ -102,8 +110,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
-	  HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
