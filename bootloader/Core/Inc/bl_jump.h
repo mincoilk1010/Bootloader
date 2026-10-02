@@ -1,0 +1,14 @@
+/*
+ * bl_jump.h
+ *
+ *  Created on: Oct 2, 2026
+ *      Author: DELL
+ */
+
+#ifndef INC_BL_JUMP_H_
+#define INC_BL_JUMP_H_
+
+void JumpToAppLication(void);
+
+#endif /* INC_BL_JUMP_H_*/
+

@@ -1,0 +1,4 @@
+../Driver/scr/uart.c:6:6:UART1_init	1
+../Driver/scr/uart.c:20:6:UART1_Send_1byte	2
+../Driver/scr/uart.c:26:6:UART1_Send_String	2
+../Driver/scr/uart.c:36:6:UART1_Read	2

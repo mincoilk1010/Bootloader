@@ -1,0 +1,20 @@
+20:03:03 **** Incremental Build of configuration Debug for project bootloader_Application ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "bootloader_Application.elf" @"objects.list"   -mcpu=cortex-m3 -T"D:\Bootloader-bootloader_stm32\bootloader_Application\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bootloader_Application.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: bootloader_Application.elf
+ 
+arm-none-eabi-size  bootloader_Application.elf 
+arm-none-eabi-objdump -h -S bootloader_Application.elf  > "bootloader_Application.list"
+arm-none-eabi-objcopy  -O binary bootloader_Application.elf  "bootloader_Application.bin"
+   text	   data	    bss	    dec	    hex	filename
+   6164	     12	   1644	   7820	   1e8c	bootloader_Application.elf
+Finished building: default.size.stdout
+ 
+Finished building: bootloader_Application.bin
+Finished building: bootloader_Application.list
+ 
+ 
+
+20:03:04 Build Finished. 0 errors, 0 warnings. (took 1s.129ms)
+
