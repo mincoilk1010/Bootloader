@@ -15,4 +15,5 @@
 typedef void (*pFunction)(void);
 
 void JumptoApplication(void);
+int bootloader_is_app_valid(void);
 #endif /* INC_BL_JUMP_H_ */

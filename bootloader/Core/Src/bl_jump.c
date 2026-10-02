@@ -40,7 +40,7 @@ int bootloader_is_app_valid(void) {
 
 	//reset handle check
 	uint32_t reset_handler = *(uint32_t *)(APP_START_ADDR + 4);
-	if((reset_handler & FF000000) != 0x08000000) {
+	if((reset_handler & 0xFF000000) != 0x08000000) {
 		return 2;
 	}
 

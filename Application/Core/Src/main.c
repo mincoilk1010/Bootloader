@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "app_header.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,7 +55,14 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+__attribute__((section(".header")))
+const app_header_t app_header =
+{
+    .magic   = APP_MAGIC,
+    .size    = 0,
+    .crc     = 0,
+    .version = 0
+};
 /* USER CODE END 0 */
 
 /**
