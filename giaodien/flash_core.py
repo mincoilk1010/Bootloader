@@ -1,25 +1,13 @@
 import os
 import struct
 import serial
+import crc32_stm32
 
 SOF = 0xAA
 CMD_START, CMD_DATA, CMD_END = 0x01, 0x02, 0x03
 ACK, NACK = 0x06, 0x15
 PAYLOAD = 128            # khớp kích thước bộ đệm của bootloader
 MAX_RETRY = 3
-
-
-def crc32_stm32(data: bytes) -> int:
-    """CRC phần cứng STM32: poly 0x04C11DB7, init 0xFFFFFFFF, theo từ 32-bit LE."""
-    if len(data) % 4:
-        data += b"\xFF" * (4 - len(data) % 4)
-    crc = 0xFFFFFFFF
-    for (word,) in struct.iter_unpack("<I", data):
-        crc ^= word
-        for _ in range(32):
-            crc = ((crc << 1) ^ 0x04C11DB7) & 0xFFFFFFFF if crc & 0x80000000 \
-                  else (crc << 1) & 0xFFFFFFFF
-    return crc
 
 
 def frame(cmd: int, data: bytes = b"") -> bytes:
