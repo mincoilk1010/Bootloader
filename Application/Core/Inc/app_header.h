@@ -10,6 +10,7 @@
 
 #include "flash_layout.h"
 #define APP_MAGIC 0xFFABABFF
+#define APP_MAX_SIZE 1
 
 typedef struct
 {

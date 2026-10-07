@@ -91,14 +91,36 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(100);
   HAL_UART_Transmit(&huart1, (uint8_t*)"Inside Bootloader!!\r\n", 21, 100);
-  if(bootloader_is_app_valid() != 0) {
-	  HAL_UART_Transmit(&huart1, (uint8_t *)"Failed to Jump!!\r\n", 18, 100);
-	  while (1)
-	  	  {
-		  	  //If led toggle -> error
-	          HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
-	          HAL_Delay(100);
-	      }
+  int err = bootloader_is_app_valid();
+  if(err != 0) {
+    switch (err)
+    {
+    case 1:
+        HAL_UART_Transmit(&huart1, (uint8_t *)"MAGIC ERROR!!\r\n", 15, 100);
+        break;
+
+    case 2:
+        HAL_UART_Transmit(&huart1, (uint8_t *)"RESET ERROR!!\r\n", 15, 100);
+        break;
+
+    case 3:
+        HAL_UART_Transmit(&huart1, (uint8_t *)"SIZE ERROR!!\r\n", 14, 100);
+        break;
+
+    case 4:
+        HAL_UART_Transmit(&huart1, (uint8_t *)"CRC ERROR!!\r\n", 13, 100);
+        break;
+
+    default:
+        HAL_UART_Transmit(&huart1, (uint8_t *)"ERROR!!\r\n", 9, 100);
+        break;
+    }
+
+    while (1)
+    {
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
+        HAL_Delay(100);
+    }
   }
   JumptoApplication();
   /* USER CODE END 2 */

@@ -6,6 +6,7 @@
  */
 #include "bl_jump.h"
 #include "app_header.h"
+#include "crc_cal.h"
 typedef void (*pFunction)(void);
 
 void JumptoApplication(void)
@@ -44,6 +45,16 @@ int bootloader_is_app_valid(void) {
 		return 2;
 	}
 
+	//app size check
+	if (app_hdr->size == 0 || app_hdr->size > APP_MAX_SIZE) {
+	    return 3;
+	}
+
+	//crc check
+	uint32_t calculated_crc = cal_hw_crc32((uint32_t*)APP_START_ADDR, app_hdr->size / 4);
+	if(calculated_crc != app_hdr->crc) {
+		return 4;
+	}
 	//if a check pass return 0
 	return 0;
 }
