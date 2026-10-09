@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bl_jump.h"
+#include "bl_ota.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,6 +92,24 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(100);
   HAL_UART_Transmit(&huart1, (uint8_t*)"Inside Bootloader!!\r\n", 21, 100);
+
+  HAL_UART_Transmit(&huart1,
+    (uint8_t *)"Inside Bootloader!!\r\n", 21, 100);
+
+  if (check_ota_request() == 0)
+  {
+    HAL_UART_Transmit(&huart1,
+        (uint8_t *)"OTA Requested... Flashing..\r\n", 29, 100);
+
+    clear_ota_flag();
+
+    while (1)
+    {
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
+        HAL_Delay(500);
+    }
+  }
+
   int err = bootloader_is_app_valid();
   if(err != 0) {
     switch (err)
