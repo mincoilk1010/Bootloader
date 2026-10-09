@@ -58,6 +58,7 @@ void SystemClock_Config(void);
 __attribute__((section(".header")))
 const app_header_t app_header =
 {
+	.OTA = 0,
     .magic   = APP_MAGIC,
     .size    = 0,
     .crc     = 0,

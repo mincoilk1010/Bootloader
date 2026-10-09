@@ -13,6 +13,7 @@
 
 typedef struct
 {
+	uint32_t OTA;
     uint32_t magic;
     uint32_t size; //size in bytes
     uint32_t crc; //CRC32 of application

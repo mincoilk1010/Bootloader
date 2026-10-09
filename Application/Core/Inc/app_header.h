@@ -10,10 +10,10 @@
 
 #include "flash_layout.h"
 #define APP_MAGIC 0xFFABABFF
-#define APP_MAX_SIZE 1
 
 typedef struct
 {
+	uint32_t OTA;
     uint32_t magic;
     uint32_t size; //size in bytes
     uint32_t crc; //CRC32 of application
