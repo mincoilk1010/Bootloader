@@ -1,0 +1,2 @@
+../Core/Src/flash_if.c:11:9:Flash_EraseAppSpace	40	static
+../Core/Src/flash_if.c:37:9:Flash_WriteData	40	static
