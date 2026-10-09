@@ -1,5 +1,7 @@
 "./Core/Src/bl_jump.o"
+"./Core/Src/bl_ota.o"
 "./Core/Src/crc_cal.o"
+"./Core/Src/flash_operations.o"
 "./Core/Src/gpio.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32f1xx_hal_msp.o"

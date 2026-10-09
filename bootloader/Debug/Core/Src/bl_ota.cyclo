@@ -1,0 +1,2 @@
+../Core/Src/bl_ota.c:18:5:check_ota_request	2
+../Core/Src/bl_ota.c:28:6:clear_ota_flag	1
