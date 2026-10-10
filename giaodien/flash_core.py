@@ -33,6 +33,7 @@ SYNC_TIMEOUT = 8.0
 RESPONSE_TIMEOUT = 1.0
 START_TIMEOUT = 8.0
 MAX_RESPONSE_TEXT_SIZE = 96
+APP_OUTPUT_CAPTURE_SECONDS = 3.5
 
 
 class ProtocolError(Exception):
@@ -214,6 +215,41 @@ def _send_command(
     return None
 
 
+def _log_application_output(ser, on_log, stop_event) -> None:
+    deadline = time.monotonic() + APP_OUTPUT_CAPTURE_SECONDS
+    line_buffer = bytearray()
+    received = False
+
+    while time.monotonic() < deadline and not stop_event.is_set():
+        ser.timeout = min(0.1, max(0.01, deadline - time.monotonic()))
+        chunk = ser.read(ser.in_waiting or 1)
+        if not chunk:
+            continue
+
+        received = True
+        line_buffer.extend(chunk)
+        while b"\n" in line_buffer:
+            line, _, remaining = line_buffer.partition(b"\n")
+            line_buffer = bytearray(remaining)
+            text = line.rstrip(b"\r").decode("utf-8", errors="replace")
+            if text:
+                on_log(f"Application UART: {text}")
+
+        if len(line_buffer) >= 512:
+            text = line_buffer.decode("utf-8", errors="replace")
+            on_log(f"Application UART: {text}")
+            line_buffer.clear()
+
+    if line_buffer:
+        text = line_buffer.decode("utf-8", errors="replace")
+        on_log(f"Application UART: {text}")
+    elif not received:
+        on_log(
+            "Không nhận được dữ liệu UART từ Application "
+            f"trong {APP_OUTPUT_CAPTURE_SECONDS:g} giây."
+        )
+
+
 def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
     """Nạp một file ứng dụng qua giao thức UART của bootloader."""
     if baud != BAUD_RATE:
@@ -349,5 +385,10 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
 
             on_progress(int(100 * (index + 1) / len(packets)))
 
-    on_log("Nạp và kiểm tra CRC thành công; bootloader đã xác nhận lệnh JUMP.")
+        on_log("Nạp và kiểm tra CRC thành công; bootloader đã xác nhận lệnh JUMP.")
+        try:
+            _log_application_output(ser, on_log, stop_event)
+        except serial.SerialException as exc:
+            on_log(f"Không đọc tiếp được UART từ Application: {exc}")
+
     return True

@@ -36,7 +36,6 @@
 #define APP_BLINK_MS 1000U
 #endif
 
-#define APP_CONFIRM_DELAY_MS  3000U
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -65,7 +64,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 __attribute__((section(".header"))) const app_header_t app_header =
 {
-	.ota_flag = 0,
+	.reserved = 0,
 	.magic = 0xABCDEFAB,
 	.size = 0,
 	.crc = 0,
@@ -117,9 +116,7 @@ int main(void)
 
   HAL_UART_Transmit(&huart1, (uint8_t*)"Inside Application!!\r\n", 22, 100);
   btn_init();
-  uint32_t started_at = HAL_GetTick();
-  uint32_t led_changed_at = started_at;
-  uint8_t confirm_attempted = 0;
+  uint32_t led_changed_at = HAL_GetTick();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -136,16 +133,9 @@ int main(void)
 	  if ((now - led_changed_at) >= APP_BLINK_MS) {
 		  led_changed_at = now;
 	      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_2);
 	  }
 
-	  if (!confirm_attempted && (now - started_at) >= APP_CONFIRM_DELAY_MS) {
-	      confirm_attempted = 1;
-
-	      if (bl_confirm_ok() != HAL_OK) {
-	    	  static const uint8_t message[] = "OTA confirm failed\r\n";
-	    	  (void)HAL_UART_Transmit(&huart1,(uint8_t *)message, sizeof(message) - 1,100);
-	             }
-	         }
   }
   /* USER CODE END 3 */
 }

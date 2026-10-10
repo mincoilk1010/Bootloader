@@ -10,7 +10,7 @@
 #include "flash_layout.h"
 
 typedef struct __attribute__((packed)) {
-    uint32_t ota_flag;
+    uint32_t reserved;
     uint32_t magic;
     uint32_t size;
     uint32_t crc;

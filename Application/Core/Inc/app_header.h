@@ -11,7 +11,7 @@
 
 typedef struct
 {
-	uint32_t ota_flag; //application thiết lập sau khi nhận thành công cờ
+	uint32_t reserved;
 	uint32_t magic;
 	uint32_t size;		// app size in bytes
 	uint32_t crc;		//CRC32 of APPLICATION

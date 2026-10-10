@@ -7,7 +7,6 @@
 #include "bl_jump.h"
 #include "app_header.h"
 #include "crc32.h"
-#include <stddef.h>
 #include "flash_prog.h"
 
 
@@ -69,13 +68,4 @@ int bootloader_is_app_valid(void)
 	}
 	return 0;
 }
-
-
-u32 app_ota_flag(void)
-{
-	u32 v;
-	flash_read_page(APP_HEADER_ADDR + (u32)offsetof(app_header_t, ota_flag), &v, 1);
-	return v;
-}
-
 

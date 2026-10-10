@@ -77,32 +77,4 @@ static inline void bl_poll(void)
         bl_reboot_to_bootloader();
 }
 
-static inline HAL_StatusTypeDef bl_confirm_ok(void)
-{
-    volatile uint32_t *ota_flag =
-        (volatile uint32_t *)BL_OTA_FLAG_ADDR;
-
-    if (*ota_flag == BL_OTA_CONFIRMED)
-        return HAL_OK;
-
-    /* Chỉ đổi cờ nếu bootloader đánh dấu firmware là pending. */
-    if (*ota_flag != BL_OTA_PENDING)
-        return HAL_ERROR;
-
-    HAL_FLASH_Unlock();
-
-    HAL_StatusTypeDef status =
-        HAL_FLASH_Program(
-            FLASH_TYPEPROGRAM_WORD,
-            BL_OTA_FLAG_ADDR,
-            BL_OTA_CONFIRMED);
-
-    HAL_FLASH_Lock();
-
-    if (status != HAL_OK || *ota_flag != BL_OTA_CONFIRMED)
-        return HAL_ERROR;
-
-    return HAL_OK;
-}
-
 #endif /* INC_APP_BL_ENTRY_H_ */

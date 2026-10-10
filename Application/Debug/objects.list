@@ -1,4 +1,3 @@
-"./Core/Src/app_ota.o"
 "./Core/Src/flash_operations.o"
 "./Core/Src/gpio.o"
 "./Core/Src/main.o"

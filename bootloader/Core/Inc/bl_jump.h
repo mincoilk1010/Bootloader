@@ -19,5 +19,4 @@ typedef void (*pFunction)(void);
 
 void JumptoApplication(void);
 int bootloader_is_app_valid(void);
-u32 app_ota_flag(void);
 #endif /* INC_BL_JUMP_H_ */

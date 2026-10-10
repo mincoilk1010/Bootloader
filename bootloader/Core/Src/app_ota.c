@@ -121,7 +121,6 @@ static status_t on_start(session_t *s, const uint8_t *p, uint16_t len)
     /* Xoa trang header (truoc app) roi cac trang code (sau header); thu tu khong quan trong */
     if (flash_erase_page(APP_HEADER_ADDR) ||
         flash_erase(APP_START_ADDR, (s->size + PAGE_SZ - 1) / PAGE_SZ)) return ST_ERR_ERASE;
-    BKP->DR2 = 0;                  /* anh moi duoc nap -> cho lai du so lan thu */
     s->started = 1;
     return ST_OK;
 }
@@ -149,7 +148,7 @@ static status_t on_end(session_t *s)
     if (!s->started || s->next != s->size) return ST_ERR_STATE;
     if (crc32((const uint8_t *)APP_START_ADDR, s->size) != s->crc) return ST_ERR_CRC;
 
-    app_header_t hdr = { .ota_flag = OTA_PENDING, .magic = APP_MAGIC,
+    app_header_t hdr = { .reserved = 0, .magic = APP_MAGIC,
                          .size = s->size, .crc = s->crc, .version = s->version };
     if (flash_write_page(APP_HEADER_ADDR, (u32 *)&hdr, sizeof hdr / 4)) return ST_ERR_WRITE;
     s->finished = 1;
@@ -160,7 +159,6 @@ static status_t on_jump(int *app_error)
 {
     *app_error = bootloader_is_app_valid();
     if (*app_error != 0) return ST_ERR_APP;
-    BKP->DR2 = 0;
     return ST_OK;                  /* nhay that su sau khi da gui phan hoi, xem loader() */
 }
 
