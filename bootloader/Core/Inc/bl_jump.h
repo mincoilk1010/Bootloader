@@ -12,7 +12,12 @@
 #include "flash_layout.h"
 #include "stm32f1xx_hal.h"
 #include "core_cm3.h"
+#include "type_config.h"
+#define APP_MAGIC  0xABCDEFAB
+#define BL_FLAG		0xB007U
 typedef void (*pFunction)(void);
 
 void JumptoApplication(void);
+int bootloader_is_app_valid(void);
+u32 app_ota_flag(void);
 #endif /* INC_BL_JUMP_H_ */

@@ -23,12 +23,20 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "flash_layout.h"
+#include "app_header.h"
+#include "bl_flag.h"
+#include "app_bl_entry.h"
+#include "button_entry.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+#ifndef APP_BLINK_MS
+#define APP_BLINK_MS 1000U
+#endif
 
+#define APP_CONFIRM_DELAY_MS  3000U
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -55,7 +63,14 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+__attribute__((section(".header"))) const app_header_t app_header =
+{
+	.ota_flag = 0,
+	.magic = 0xABCDEFAB,
+	.size = 0,
+	.crc = 0,
+	.version = 0
+};
 /* USER CODE END 0 */
 
 /**
@@ -75,7 +90,9 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  SCB->VTOR = APP_START_ADDR; // trỏ đến đầu bộ nhớ ứng dụng
 
+  __enable_irq();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -90,6 +107,19 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  GPIO_InitTypeDef led = {0};
+  led.Pin = GPIO_PIN_13;
+  led.Mode = GPIO_MODE_OUTPUT_PP;
+  led.Pull = GPIO_NOPULL;
+  led.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &led);
+
+  HAL_UART_Transmit(&huart1, (uint8_t*)"Inside Application!!\r\n", 22, 100);
+  btn_init();
+  uint32_t started_at = HAL_GetTick();
+  uint32_t led_changed_at = started_at;
+  uint8_t confirm_attempted = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -99,6 +129,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  uint32_t now = HAL_GetTick();
+	  btn_poll();
+	  bl_poll();
+
+	  if ((now - led_changed_at) >= APP_BLINK_MS) {
+		  led_changed_at = now;
+	      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	  }
+
+	  if (!confirm_attempted && (now - started_at) >= APP_CONFIRM_DELAY_MS) {
+	      confirm_attempted = 1;
+
+	      if (bl_confirm_ok() != HAL_OK) {
+	    	  static const uint8_t message[] = "OTA confirm failed\r\n";
+	    	  (void)HAL_UART_Transmit(&huart1,(uint8_t *)message, sizeof(message) - 1,100);
+	             }
+	         }
   }
   /* USER CODE END 3 */
 }

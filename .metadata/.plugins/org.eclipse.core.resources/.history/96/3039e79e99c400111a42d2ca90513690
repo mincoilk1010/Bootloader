@@ -1,0 +1,34 @@
+/*
+ * crc32.c
+ *
+ *  Created on: Sep 30, 2026
+ *      Author: Admin
+ */
+#include "crc32.h"
+
+uint32_t crc32(const uint8_t *data, uint32_t length)   // checksum 	FIRMWARE
+{
+	uint32_t crc = 0xFFFFFFFF;
+	for(uint32_t i = 0; i < length; i++)
+	{
+		crc ^= data[i];
+		for(uint8_t j = 0; j < 8; j++)
+		{
+			if(crc & 1)
+				crc = (crc >> 1) ^ 0xEDB88320;
+			else
+				crc >>= 1;
+		}
+	}
+	return crc ^ 0xFFFFFFFF;
+}
+uint16_t crc16(uint16_t c, const uint8_t *p, uint32_t n) // checksum FRAME
+{
+    while (n--) {
+    	c ^= (uint16_t)(*p++) << 8;
+    	for (int i = 0; i < 8; i++)
+    		c = (c & 0x8000) ? (c << 1) ^ 0x1021 : (c << 1);
+    }
+    return c;
+}
+

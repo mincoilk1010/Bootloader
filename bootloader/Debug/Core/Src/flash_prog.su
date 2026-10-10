@@ -1,0 +1,2 @@
+../Core/Src/flash_prog.c:10:5:flash_erase	40	static
+../Core/Src/flash_prog.c:23:5:flash_write	40	static

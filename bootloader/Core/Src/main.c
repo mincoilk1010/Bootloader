@@ -24,6 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bl_jump.h"
+#include "app_ota.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,22 +90,44 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  read_byte();  /* Start the first UART interrupt receive for the RX ring buffer. */
   /* USER CODE BEGIN 2 */
+  __HAL_RCC_PWR_CLK_ENABLE(); __HAL_RCC_BKP_CLK_ENABLE(); HAL_PWR_EnableBkUpAccess();
+  int stay = (BKP->DR1 == BL_FLAG);
+  if (stay) BKP->DR1 = 0;
   HAL_Delay(100);
-  HAL_UART_Transmit(&huart1, (uint8_t*)"Inside Bootloader!!\r\n", 21, 100);
 
-  JumptoApplication();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint32_t t0 = HAL_GetTick(), tb = t0, tm = t0; int checked = 0;
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
-	  HAL_Delay(100);
+      uint8_t b;
+       if (rx_byte_timeout(&b, 5) && b == SYNC) { send_byte(ACK); loader(); }
+       if (!stay && !checked && HAL_GetTick() - t0 > BOOT_WAIT_MS) {
+           checked = 1;
+           if (bootloader_is_app_valid() == 0) {   /* 0 = hop le (xem app_image.c) */
+               if (app_ota_flag() == OTA_CONFIRMED) {
+                   BKP->DR2 = 0;                     /* app da tung chay on, reset bo dem */
+                   JumptoApplication();
+               } else {
+                   uint32_t attempts = BKP->DR2;
+                   if (attempts < MAX_BOOT_ATTEMPTS) {
+                       BKP->DR2 = attempts + 1;       /* cho app 1 co hoi nua */
+                       JumptoApplication();
+                   }
+                   /* qua MAX_BOOT_ATTEMPTS ma van chua tu confirm -> coi la app
+                    * loi (treo/crash ngay sau khi nhay), o lai bootloader de nap lai */
+               }
+           }
+       }
+       if ((checked || stay) && HAL_GetTick() - tb > 80) { tb = HAL_GetTick(); HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); } /* nhay rat nhanh = khong co app hop le */
+       if (HAL_GetTick() - tm > 250) { tm = HAL_GetTick(); HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1); }   /* LED_MODE: con dang o bootloader */
   }
   /* USER CODE END 3 */
 }

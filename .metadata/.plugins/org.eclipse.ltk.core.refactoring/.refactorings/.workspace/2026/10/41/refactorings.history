@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;bootloader/Core/Inc/types_config.h&apos;" deleteContents="false" description="Delete resource &apos;bootloader/Core/Inc/types_config.h&apos;" element1="/bootloader/Core/Inc/types_config.h" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1791138685574"/>&#x0A;<refactoring comment="Delete resource &apos;Application/Core/Src/APP.c&apos;" deleteContents="false" description="Delete resource &apos;Application/Core/Src/APP.c&apos;" element1="/Application/Core/Src/APP.c" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1791524205840"/>
+</session>

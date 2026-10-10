@@ -1,0 +1,48 @@
+/*
+ * app_ota.c
+ *
+ *  Created on: Oct 5, 2026
+ *      Author: Admin
+ */
+
+
+#include "flash_layout.h"
+#include "main.h"
+#include "app_ota.h"
+#include "flash_operations.h"
+#include "type_config.h"
+
+
+#define OTA_FLAG_START 1
+
+u32 flash_buffer[5];
+/*
+void enable_ota_request(void)
+{
+	HAL_FLASH_Unlock();
+	flash_read_page(APP_HEADER_ADDR, flash_buffer, n_word);
+
+	flash_buffer[0] = OTA_FLAG_START;
+	flash_erase_page(APP_HEADER_ADDR);
+	flash_write_page(APP_HEADER_ADDR, flash_buffer, n_word);
+	HAL_FLASH_Lock();
+	NVIC_SystemReset();
+}
+*/
+/* Khung: A5 | cmd | len(2,LE) | payload | crc16(2,LE) tren cmd,len,payload
+ * return 0 ok, 1 chua co SOF, -1 loi khung/checksum */
+static int rx_frame(uint8_t *cmd, uint8_t *buf, uint16_t *len)
+{
+	u8 b;
+	u8 h[3];
+	u8 c[2];
+	if
+
+
+}
+void loader(void)
+{
+
+}
+
+

@@ -29,7 +29,7 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "type_config.h"
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart1;
@@ -41,7 +41,10 @@ extern UART_HandleTypeDef huart1;
 void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+int rx_byte_timeout(uint8_t *b, uint32_t ms);
+void send_byte(u8 b);
+int read_byte(void);
+void uart_send(const uint8_t *p, uint16_t n);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

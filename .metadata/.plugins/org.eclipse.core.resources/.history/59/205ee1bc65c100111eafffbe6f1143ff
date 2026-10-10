@@ -1,0 +1,13 @@
+/*
+ * app_ota.h
+ *
+ *  Created on: Oct 5, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_APP_OTA_H_
+#define INC_APP_OTA_H_
+
+void loader();
+
+#endif /* INC_APP_OTA_H_ */
