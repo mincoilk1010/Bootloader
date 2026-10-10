@@ -1,7 +1,7 @@
-../Core/Src/app_ota.c:51:13:send_resp	32	static
-../Core/Src/app_ota.c:61:12:rx_frame	40	static
-../Core/Src/app_ota.c:82:17:on_start	32	static
-../Core/Src/app_ota.c:97:17:on_data	40	static
-../Core/Src/app_ota.c:114:17:on_end	40	static
-../Core/Src/app_ota.c:127:17:on_jump	8	static
-../Core/Src/app_ota.c:135:6:loader	176	static
+../Core/Src/app_ota.c:52:13:send_resp	128	static
+../Core/Src/app_ota.c:93:12:rx_frame	40	static
+../Core/Src/app_ota.c:114:17:on_start	32	static
+../Core/Src/app_ota.c:129:17:on_data	40	static
+../Core/Src/app_ota.c:146:17:on_end	40	static
+../Core/Src/app_ota.c:159:17:on_jump	16	static
+../Core/Src/app_ota.c:168:6:loader	184	static

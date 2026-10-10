@@ -1,2 +1,4 @@
 1791138685574	Delete resource 'bootloader/Core/Inc/types_config.h'
 1791524205840	Delete resource 'Application/Core/Src/APP.c'
+1791637184244	Delete resource 'Application/Core/Inc/app_ota.h'
+1791637193517	Delete resource 'Application/Core/Src/app_ota.c'

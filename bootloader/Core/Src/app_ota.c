@@ -48,12 +48,44 @@ typedef struct {
 } session_t;
 
 /* ---------- Phan hoi ---------- */
-static void send_resp(uint8_t cmd, status_t st)
+/* A5 | CMD | STATUS | TEXT_LEN | TEXT | CRC16(CMD..TEXT) | 5A */
+static void send_resp(uint8_t cmd, status_t st, int app_error)
 {
-    const uint8_t body[2] = { cmd, (uint8_t)st };
-    resp_frame_t r = { .sof = SOF, .cmd = cmd, .status = (uint8_t)st,
-                       .crc = crc16(0, body, sizeof body), .eof = EOF };
-    uart_send((const uint8_t *)&r, sizeof r);
+    const char *message = "";
+    switch (st) {
+    case ST_ERR_FRAME:       message = "Loi frame, CRC16 hoac EOF"; break;
+    case ST_ERR_UNKNOWN_CMD: message = "Lenh khong duoc ho tro"; break;
+    case ST_ERR_PARAM:       message = "Tham so hoac kich thuoc khong hop le"; break;
+    case ST_ERR_STATE:       message = "Lenh khong dung trang thai phien nap"; break;
+    case ST_ERR_OFFSET:      message = "Offset du lieu khong lien tiep"; break;
+    case ST_ERR_ERASE:       message = "Xoa Flash that bai"; break;
+    case ST_ERR_WRITE:       message = "Ghi Flash that bai"; break;
+    case ST_ERR_CRC:         message = "CRC32 firmware khong khop"; break;
+    case ST_ERR_APP:
+        switch (app_error) {
+        case 1: message = "MAGIC ERROR"; break;
+        case 2: message = "RESET VECTOR ERROR"; break;
+        case 3: message = "SIZE ERROR"; break;
+        case 4: message = "CRC ERROR"; break;
+        default: message = "APPLICATION ERROR"; break;
+        }
+        break;
+    default: break;
+    }
+
+    uint8_t message_len = (uint8_t)strlen(message);
+    uint8_t response[4 + 96 + 3];
+    response[0] = SOF;
+    response[1] = cmd;
+    response[2] = (uint8_t)st;
+    response[3] = message_len;
+    memcpy(&response[4], message, message_len);
+
+    uint16_t checksum = crc16(0, &response[1], 3 + message_len);
+    response[4 + message_len] = (uint8_t)checksum;
+    response[5 + message_len] = (uint8_t)(checksum >> 8);
+    response[6 + message_len] = EOF;
+    uart_send(response, (uint16_t)(7 + message_len));
 }
 
 /* ---------- Nhan khung ----------
@@ -124,9 +156,10 @@ static status_t on_end(session_t *s)
     return ST_OK;
 }
 
-static status_t on_jump(void)
+static status_t on_jump(int *app_error)
 {
-    if (bootloader_is_app_valid() != 0) return ST_ERR_APP;
+    *app_error = bootloader_is_app_valid();
+    if (*app_error != 0) return ST_ERR_APP;
     BKP->DR2 = 0;
     return ST_OK;                  /* nhay that su sau khi da gui phan hoi, xem loader() */
 }
@@ -140,20 +173,21 @@ void loader(void)
     for (;;) {
         int r = rx_frame(&f);
         if (r == 1) continue;
-        if (r < 0) { send_resp(0, ST_ERR_FRAME); continue; }
+        if (r < 0) { send_resp(0, ST_ERR_FRAME, 0); continue; }
 
         status_t st;
+        int app_error = 0;
         switch (f.hdr.cmd) {
         case CMD_START: st = on_start(&s, f.payload, f.hdr.len); break;
         case CMD_DATA:  st = on_data(&s, f.payload, f.hdr.len);  break;
         case CMD_END:   st = (f.hdr.len == 0) ? on_end(&s)  : ST_ERR_PARAM; break;
-        case CMD_JUMP:  st = (f.hdr.len == 0) ? on_jump()   : ST_ERR_PARAM; break;
+        case CMD_JUMP:
+            st = (f.hdr.len == 0) ? on_jump(&app_error) : ST_ERR_PARAM;
+            break;
         default:        st = ST_ERR_UNKNOWN_CMD;
         }
-        send_resp(f.hdr.cmd, st);
+        send_resp(f.hdr.cmd, st, app_error);
 
         if (f.hdr.cmd == CMD_JUMP && st == ST_OK) { HAL_Delay(5); JumptoApplication(); }
     }
 }
-
-

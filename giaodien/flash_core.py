@@ -32,6 +32,7 @@ APP_REBOOT_TIMEOUT = 1.0
 SYNC_TIMEOUT = 8.0
 RESPONSE_TIMEOUT = 1.0
 START_TIMEOUT = 8.0
+MAX_RESPONSE_TEXT_SIZE = 96
 
 
 class ProtocolError(Exception):
@@ -117,7 +118,9 @@ def _request_app_reboot(ser) -> None:
     ser.write(request)
 
 
-def _read_response(ser, expected_cmd: int, timeout: float) -> int | None:
+def _read_response(
+    ser, expected_cmd: int, timeout: float
+) -> tuple[int, str] | None:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         first = _read_exact(ser, 1, deadline)
@@ -125,19 +128,29 @@ def _read_response(ser, expected_cmd: int, timeout: float) -> int | None:
             return None
         if first[0] != SOF:
             continue
-        rest = _read_exact(ser, 5, deadline)
-        if rest is None:
+        header = _read_exact(ser, 3, deadline)
+        if header is None:
             return None
 
-        cmd, status = rest[0], rest[1]
-        received_crc = struct.unpack("<H", rest[2:4])[0]
-        if rest[4] != EOF or received_crc != crc16(bytes([cmd, status])):
+        cmd, status, text_size = header
+        if text_size > MAX_RESPONSE_TEXT_SIZE:
+            raise ProtocolError(
+                f"Độ dài thông báo phản hồi không hợp lệ: {text_size}."
+            )
+        tail = _read_exact(ser, text_size + 3, deadline)
+        if tail is None:
+            return None
+
+        text = tail[:text_size]
+        received_crc = struct.unpack("<H", tail[text_size:text_size + 2])[0]
+        body = bytes([cmd, status, text_size]) + text
+        if tail[-1] != EOF or received_crc != crc16(body):
             raise ProtocolError("Phản hồi bootloader sai CRC16/EOF.")
-        if cmd != expected_cmd:
+        if cmd != expected_cmd and not (cmd == 0 and status == ST_ERR_FRAME):
             raise ProtocolError(
                 f"CMD phản hồi không khớp (nhận {cmd}, cần {expected_cmd})."
             )
-        return status
+        return status, text.decode("utf-8", errors="replace")
     return None
 
 
@@ -180,20 +193,24 @@ def _status_message(status: int) -> str:
     return messages.get(status, f"Mã trạng thái không xác định: {status}")
 
 
-def _send_command(ser, cmd: int, payload: bytes, timeout: float) -> int | None:
+def _send_command(
+    ser, cmd: int, payload: bytes, timeout: float
+) -> tuple[int, str] | None:
     packet = frame(cmd, payload)
     for attempt in range(MAX_RETRY + 1):
         ser.write(packet)
-        status = _read_response(ser, cmd, timeout)
-        if status == ST_OK:
-            return status
-        if status is None:
+        response = _read_response(ser, cmd, timeout)
+        if response is None:
             if attempt < MAX_RETRY:
                 continue
             return None
+
+        status, _ = response
+        if status == ST_OK:
+            return response
         if status == ST_ERR_FRAME and attempt < MAX_RETRY:
             continue
-        return status
+        return response
     return None
 
 
@@ -290,7 +307,7 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
 
             timeout = START_TIMEOUT if name == "START" else RESPONSE_TIMEOUT
             try:
-                status = _send_command(ser, cmd, payload, timeout)
+                response = _send_command(ser, cmd, payload, timeout)
             except ProtocolError as exc:
                 on_log(f"Lỗi giao thức tại {name}: {exc}")
                 return False
@@ -298,10 +315,17 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
                 on_log(f"Lỗi truyền UART tại {name}: {exc}")
                 return False
 
+            if response is None:
+                status = None
+                device_message = ""
+            else:
+                status, device_message = response
+
             if status != ST_OK:
                 if name == "END" and status == ST_ERR_CRC:
                     on_log(
-                        "CRC32 không khớp: bootloader từ chối firmware; "
+                        f"STM32 báo lỗi: {device_message or _status_message(status)}; "
+                        "bootloader từ chối firmware; "
                         "không gửi JUMP, board ở lại bootloader."
                     )
                 elif status is None:
@@ -316,7 +340,11 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
                             "kiểm tra kết nối rồi thử lại."
                         )
                 else:
-                    on_log(f"{name} thất bại: {_status_message(status)}.")
+                    on_log(
+                        f"{name} thất bại: "
+                        f"{device_message or _status_message(status)} "
+                        f"(status={status})."
+                    )
                 return False
 
             on_progress(int(100 * (index + 1) / len(packets)))

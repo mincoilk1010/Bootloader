@@ -72,20 +72,11 @@ typedef struct __attribute__((packed)) {      /* payload cua CMD_DATA (data[] ch
     uint8_t  data[CHUNK_MAX];
 } data_payload_t;
 
-typedef struct __attribute__((packed)) {      /* goi phan hoi, dung 6 byte */
-    uint8_t  sof;
-    uint8_t  cmd;
-    uint8_t  status;
-    uint16_t crc;
-    uint8_t  eof;
-} resp_frame_t;
-
 /* Kich thuoc struct = kich thuoc tren day truyen. Sai thi bao loi luc bien dich. */
 
 _Static_assert(sizeof(frame_hdr_t)     == 4,  "frame_hdr_t phai 4 byte");
 _Static_assert(sizeof(start_payload_t) == 12, "start_payload_t phai 12 byte");
 _Static_assert(sizeof(data_payload_t)  == 4 + CHUNK_MAX, "data_payload_t sai kich thuoc");
-_Static_assert(sizeof(resp_frame_t)    == 6,  "resp_frame_t phai 6 byte");
 
 void loader(void);
 

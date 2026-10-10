@@ -1,6 +1,14 @@
-18:05:02 **** Incremental Build of configuration Debug for project bootloader ****
+21:01:28 **** Incremental Build of configuration Debug for project bootloader ****
 make -j12 all 
+arm-none-eabi-gcc "../Core/Src/app_ota.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/app_ota.d" -MT"Core/Src/app_ota.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/app_ota.o"
+arm-none-eabi-gcc "../Core/Src/bl_jump.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/bl_jump.d" -MT"Core/Src/bl_jump.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/bl_jump.o"
 arm-none-eabi-gcc "../Core/Src/crc32.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/crc32.d" -MT"Core/Src/crc32.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/crc32.o"
+arm-none-eabi-gcc "../Core/Src/flash_prog.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/flash_prog.d" -MT"Core/Src/flash_prog.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/flash_prog.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+../Core/Src/bl_jump.c: In function 'app_ota_flag':
+../Core/Src/bl_jump.c:77:9: warning: implicit declaration of function 'flash_read_page' [-Wimplicit-function-declaration]
+   77 |         flash_read_page(APP_HEADER_ADDR + (u32)offsetof(app_header_t, ota_flag), &v, 1);
+      |         ^~~~~~~~~~~~~~~
 arm-none-eabi-gcc -o "bootloader.elf" @"objects.list"   -mcpu=cortex-m3 -T"D:\bootloader_stm32f103_hal\bootloader\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bootloader.map" -Wl,--gc-sections -static -Wl,-Map=bootloader.map --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 Finished building target: bootloader.elf
  
@@ -8,16 +16,16 @@ arm-none-eabi-size  bootloader.elf
 arm-none-eabi-objdump -h -S bootloader.elf  > "bootloader.list"
 arm-none-eabi-objcopy  -O ihex bootloader.elf  "bootloader.hex"
    text	   data	    bss	    dec	    hex	filename
-  12960	     12	   1744	  14716	   397c	bootloader.elf
+  13692	     12	   1744	  15448	   3c58	bootloader.elf
 arm-none-eabi-objcopy  -O binary bootloader.elf  "bootloader.bin"
 Finished building: default.size.stdout
+ 
+Finished building: bootloader.list
  
 Finished building: bootloader.hex
 Finished building: bootloader.bin
  
  
-Finished building: bootloader.list
- 
 
-18:05:03 Build Finished. 0 errors, 0 warnings. (took 732ms)
+21:01:32 Build Finished. 0 errors, 1 warnings. (took 3s.804ms)
 
