@@ -50,7 +50,7 @@ class Main:
         self.ui.pgBar.setValue(0)
         self.ui.lbStatus.setText("Sẵn sàng. Bấm RESET board trước khi nạp.")
 
-        self.ui.cbBaud.addItems(["9600", "57600", "115200", "230400", "460800"])
+        self.ui.cbBaud.addItems(["115200"])
         self.ui.cbBaud.setCurrentText("115200")
         self.ui.edtA.setText(os.path.join(base, "appA.bin"))
         self.ui.edtB.setText(os.path.join(base, "appB.bin"))
