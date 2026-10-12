@@ -70,16 +70,20 @@ def frame(cmd: int, payload: bytes = b"") -> bytes:
     return bytes([SOF]) + body + struct.pack("<H", checksum) + bytes([EOF])
 
 
-def _read_exact(ser, size: int, deadline: float) -> bytes | None:
+def _read_exact(ser, size: int, deadline: float, stop_event=None) -> bytes | None:
     result = bytearray()
     while len(result) < size:
+        if stop_event is not None and stop_event.is_set():
+            return None
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             return None
-        ser.timeout = remaining
+        ser.timeout = min(remaining, 0.1) if stop_event is not None else remaining
         part = ser.read(size - len(result))
         if not part:
-            return None
+            if stop_event is None:
+                return None
+            continue
         result.extend(part)
     return bytes(result)
 
@@ -101,18 +105,22 @@ def _wait_sync_ack(
     return False
 
 
-def _wait_app_reboot_ack(ser, timeout: float) -> bool:
+def _wait_app_reboot_ack(ser, timeout: float, stop_event=None) -> bool:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        first = _read_exact(ser, 1, deadline)
-        if first is None:
+        if stop_event is not None and stop_event.is_set():
             return False
+        first = _read_exact(ser, 1, deadline, stop_event)
+        if first is None:
+            if stop_event is not None and stop_event.is_set():
+                return False
+            continue
         if first[0] == SYNC_ACK:
             return True
         if first[0] == SOF:
             # If the target was already in the bootloader, it may report the
             # app-only reboot request as a framed protocol error. Skip it.
-            _read_exact(ser, 5, deadline)
+            _read_exact(ser, 5, deadline, stop_event)
     return False
 
 
@@ -127,17 +135,33 @@ def _request_app_reboot(ser) -> None:
 
 
 def _read_response(
+<<<<<<< Updated upstream
     ser, expected_cmd: int, timeout: float
 ) -> tuple[int, str] | None:
+=======
+    ser, expected_cmd: int, timeout: float, stop_event
+) -> int | None:
+>>>>>>> Stashed changes
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        first = _read_exact(ser, 1, deadline)
-        if first is None:
+        if stop_event.is_set():
             return None
+        first = _read_exact(ser, 1, deadline, stop_event)
+        if first is None:
+            if stop_event.is_set():
+                return None
+            continue
         if first[0] != SOF:
             continue
+<<<<<<< Updated upstream
         header = _read_exact(ser, 3, deadline)
         if header is None:
+=======
+        rest = _read_exact(ser, 5, deadline, stop_event)
+        if rest is None:
+            if stop_event.is_set():
+                return None
+>>>>>>> Stashed changes
             return None
 
         cmd, status, text_size = header
@@ -158,7 +182,50 @@ def _read_response(
             raise ProtocolError(
                 f"CMD phản hồi không khớp (nhận {cmd}, cần {expected_cmd})."
             )
+<<<<<<< Updated upstream
         return status, text.decode("utf-8", errors="replace")
+=======
+        return status
+    return None
+
+
+def _status_message(status: int) -> str:
+    messages = {
+        1: "Lỗi frame/CRC16",
+        2: "Lệnh không được hỗ trợ",
+        3: "Tham số hoặc kích thước không hợp lệ",
+        4: "Lệnh không đúng trạng thái phiên nạp",
+        5: "Offset dữ liệu không liên tiếp",
+        6: "Xóa Flash thất bại",
+        7: "Ghi Flash thất bại",
+        8: "CRC32 ảnh không khớp",
+        9: "Ứng dụng không hợp lệ",
+    }
+    return messages.get(status, f"Mã trạng thái không xác định: {status}")
+
+
+def _send_command(
+    ser, cmd: int, payload: bytes, timeout: float, stop_event
+) -> int | None:
+    packet = frame(cmd, payload)
+    for attempt in range(MAX_RETRY + 1):
+        if stop_event.is_set():
+            return None
+        ser.write(packet)
+        response = _read_response(ser, cmd, timeout, stop_event)
+        if stop_event.is_set():
+            return None
+        if response is None:
+            if attempt < MAX_RETRY:
+                continue
+            return None
+
+        if response == ST_OK:
+            return response
+        if response == ST_ERR_FRAME and attempt < MAX_RETRY:
+            continue
+        return response
+>>>>>>> Stashed changes
     return None
 
 
@@ -278,7 +345,10 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
     try:
         ser = serial.Serial(port, baud, timeout=0.1, write_timeout=1)
     except serial.SerialException as exc:
-        on_log(f"Không mở được cổng COM: {exc}")
+        if stop_event.is_set():
+            on_log("Đã hủy bởi người dùng.")
+        else:
+            on_log(f"Không mở được cổng COM: {exc}")
         return False
 
     with ser:
@@ -290,7 +360,7 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
             if not synced and not stop_event.is_set():
                 on_log("Chưa thấy bootloader; gửi yêu cầu app chuyển sang bootloader...")
                 _request_app_reboot(ser)
-                if _wait_app_reboot_ack(ser, APP_REBOOT_TIMEOUT):
+                if _wait_app_reboot_ack(ser, APP_REBOOT_TIMEOUT, stop_event):
                     on_log("Application đã nhận lệnh và đang reset.")
                 elif not stop_event.is_set():
                     on_log("Không nhận ACK từ Application; tiếp tục dò bootloader.")
@@ -298,7 +368,10 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
                 if not stop_event.is_set():
                     synced = _wait_sync_ack(ser, stop_event)
         except serial.SerialException as exc:
-            on_log(f"Lỗi UART khi bắt tay bootloader: {exc}")
+            if stop_event.is_set():
+                on_log("Đã hủy bởi người dùng.")  
+            else:  
+                on_log(f"Lỗi UART khi bắt tay bootloader: {exc}")
             return False
         if not synced:
             if stop_event.is_set():
@@ -315,12 +388,22 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
 
             timeout = START_TIMEOUT if name == "START" else RESPONSE_TIMEOUT
             try:
-                response = _send_command(ser, cmd, payload, timeout)
+                response = _send_command(ser, cmd, payload, timeout, stop_event)
             except ProtocolError as exc:
-                on_log(f"Lỗi giao thức tại {name}: {exc}")
+                if stop_event.is_set():
+                    on_log("Đã hủy bởi người dùng.")
+                else:
+                    on_log(f"Lỗi giao thức tại {name}: {exc}")
                 return False
             except serial.SerialException as exc:
-                on_log(f"Lỗi truyền UART tại {name}: {exc}")
+                if stop_event.is_set():
+                    on_log("Đã hủy bởi người dùng.")
+                else:
+                    on_log(f"Lỗi truyền UART tại {name}: {exc}")
+                return False
+
+            if stop_event.is_set():
+                on_log("Đã hủy bởi người dùng; dừng truyền firmware.")
                 return False
 
             if response is None:
@@ -357,5 +440,17 @@ def flash(port, baud, path, corrupt, on_progress, on_log, stop_event):
 
             on_progress(int(100 * (index + 1) / len(packets)))
 
+<<<<<<< Updated upstream
     on_log("Nạp và kiểm tra CRC thành công; bootloader đã xác nhận lệnh JUMP.")
+=======
+        on_log("Nạp và kiểm tra CRC thành công; bootloader đã xác nhận lệnh JUMP.")
+        try:
+            _log_application_output(ser, on_log, stop_event)
+        except serial.SerialException as exc:
+            on_log(f"Không đọc tiếp được UART từ Application: {exc}")
+
+    if stop_event.is_set():
+        on_log("Đã hủy theo dõi UART bởi người dùng.")
+        return False
+>>>>>>> Stashed changes
     return True
