@@ -268,7 +268,3 @@ void enable_ota_request(void)
 5. Mở serial terminal (115200 hoặc theo cấu hình trong `usart.c`) và reset board để xem log của bootloader.
 
 ---
-
-## Tác giả
-
-**minh-bui** – đóng góp phần App Header, kiểm tra application, tính CRC32 bằng hardware và các hàm thao tác flash.
