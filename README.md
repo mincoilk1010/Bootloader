@@ -1,8 +1,6 @@
 # STM32F103 Bootloader – App Header, Hardware CRC32 & Flash Operations
 
-Bootloader viết cho **STM32F103C8T6 (Blue Pill)** bằng **STM32CubeIDE + HAL**. Bootloader chạy đầu tiên sau reset, **kiểm tra tính hợp lệ của application** (magic, reset vector, size, CRC32) rồi mới nhảy vào app. Nếu app không hợp lệ, bootloader báo lỗi qua UART và dừng lại, không chạy firmware hỏng.
-
-Phần mình đóng góp trong project:
+Bootloader sử dụng cho **STM32F103C8T6** bằng **STM32CubeIDE + HAL**. Sau mỗi lần Reset, **Bootloader kiểm tra tính hợp lệ của application** (magic, reset vector, size, CRC32) rồi mới nhảy vào app. Nếu app không hợp lệ, bootloader báo lỗi qua UART và dừng lại, không chạy firmware hỏng.
 
 | Hạng mục | Mô tả | File chính |
 |---|---|---|
@@ -58,26 +56,6 @@ STM32F103C8T6 có 64 KB flash, mỗi page 1 KB. Flash được chia thành 3 vù
 
 Header được đặt riêng một page 1 KB để có thể **xóa và ghi lại độc lập** với code của application (flash chỉ xóa được theo page).
 
-**Linker script** của bootloader giới hạn `FLASH` ở 16 KB. Linker script của application khai báo thêm vùng `APP_HEADER` và đưa section `.header` vào đó:
-
-```ld
-MEMORY
-{
-  RAM        (xrw) : ORIGIN = 0x20000000, LENGTH = 20K
-  APP_HEADER (rx)  : ORIGIN = 0x08004000, LENGTH = 1K
-  FLASH      (rx)  : ORIGIN = 0x08004400, LENGTH = 47K
-}
-
-SECTIONS
-{
-  ...
-  .header :
-  {
-    KEEP(*(.header))
-  } > APP_HEADER
-}
-```
-
 ---
 
 ## 3. App Header
@@ -93,20 +71,6 @@ typedef struct
     uint32_t crc;      // CRC32 của application
     uint32_t version;  // phiên bản firmware
 } app_header_t;        // 5 word = 20 bytes
-```
-
-Application khai báo header là hằng số và gắn vào section `.header`:
-
-```c
-__attribute__((section(".header")))
-const app_header_t app_header =
-{
-    .OTA     = 0xFFFFFFFF,
-    .magic   = APP_MAGIC,
-    .size    = 0,   // điền sau khi build
-    .crc     = 0,   // điền sau khi build
-    .version = 0
-};
 ```
 
 `size` và `crc` chỉ biết được **sau khi build xong** (xem mục 5).
@@ -147,19 +111,6 @@ int bootloader_is_app_valid(void)
     return 0;
 }
 ```
-
-Thứ tự được sắp xếp từ **rẻ đến đắt**: các bước 1–3 chỉ đọc vài word, còn tính CRC (bước 4) phải quét toàn bộ app nên chỉ chạy khi 3 bước đầu đã qua.
-
-### Nhảy vào application
-
-`JumptoApplication()` đọc **Main Stack Pointer** (word đầu tiên) và **Reset Handler** (word thứ hai) từ vector table của app, sau đó:
-
-1. Tắt ngắt toàn cục (`__disable_irq()`).
-2. Tắt SysTick (`CTRL`, `LOAD`, `VAL` = 0) để tránh bootloader để lại ngắt cho app.
-3. Nạp MSP của app (`__set_MSP`).
-4. Gọi reset handler của app.
-
----
 
 ## 5. Tính CRC32 bằng hardware
 
@@ -315,20 +266,6 @@ void enable_ota_request(void)
 3. Build **Application**, lấy file `.bin`, tính `size` và `crc` bằng script ở mục 5.
 4. Điền `size`, `crc` (và `version`) vào `app_header` rồi build lại / nạp lại. Application phải được nạp ở `0x08004400`, header ở `0x08004000`.
 5. Mở serial terminal (115200 hoặc theo cấu hình trong `usart.c`) và reset board để xem log của bootloader.
-
----
-
-## 11. Ghi chú & hướng phát triển
-
-Một số điểm mình đã nhận ra khi ôn lại project, ghi lại để cải thiện tiếp:
-
-- [ ] **Bật clock cho CRC peripheral:** cần gọi `__HAL_RCC_CRC_CLK_ENABLE()` trước khi dùng `cal_hw_crc32()`. Nếu chưa bật, thanh ghi CRC sẽ không hoạt động và kết quả luôn sai.
-- [ ] **Relocate vector table trong application:** do app nằm ở `0x08004400`, cần đặt `SCB->VTOR = 0x08004400` (bật `USER_VECT_TAB_ADDRESS` và `VECT_TAB_OFFSET` trong `system_stm32f1xx.c` của app) để ngắt như SysTick/UART của app dùng đúng vector table.
-- [ ] **Tự động điền `size` / `crc` vào header:** hiện phải làm thủ công; có thể thêm post-build step trong CubeIDE chạy script Python.
-- [ ] **Kiểm tra lỗi trả về của HAL:** `flash_erase_page` / `flash_write_page` nên kiểm tra `HAL_StatusTypeDef` và trạng thái `error` khi xóa.
-- [ ] **Hoàn thiện nhận firmware OTA:** hiện bootloader mới phát hiện và xóa cờ OTA; phần nhận firmware qua UART (hoặc giao thức khác) rồi ghi vào flash vẫn đang phát triển.
-- [ ] **Kích thước app không chia hết cho 4:** xử lý padding ở phía bootloader hoặc ép linker align kích thước.
-- [ ] **Tách hằng số magic / OTA flag** thành header chung giữa bootloader và application để tránh lệch.
 
 ---
 
