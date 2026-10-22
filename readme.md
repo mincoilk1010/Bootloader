@@ -1,19 +1,7 @@
 # STM32 Bootloader & Vector Table Relocation Guide
 
-Một hướng dẫn toàn diện và mã nguồn mẫu triển khai **Bootloader**, **Phân chia bộ nhớ (Memory Mapping)**, **Định vị lại bảng vector ngắt (VTOR)** và **Hàm nhảy (Jump Function)** cho dòng vi điều khiển STM32 (ARM Cortex-M3/M4).
-
----
-
 ## 📌 Nội Dung Chính (Table of Contents)
 
-1. [Tổng Quan Kiến Trúc (Architecture Overview)](#1-tổng-quan-kiến-trúc)
-2. [Bố Trí Bộ Nhớ Flash (Memory Mapping)](#2-bố-trí-bộ-nhớ-flash)
-3. [Cấu Hình Linker Script (.ld)](#3-cấu-hình-linker-script)
-4. [Định Vị Lại Bảng Vector Ngắt (VTOR)](#4-định-vị-lại-bảng-vector-ngắt)
-5. [Cơ Chế & Mã Nguồn Hàm Nhảy (Jump Function)](#5-cơ-chế--mã-nguồn-hàm-nhảy)
-6. [Quy Trình Kiểm Tra & Triển Khai](#6-quy-trình-kiểm-tra--triển-khai)
-
----
 
 ## 1. Tổng Quan Kiến Trúc
 
@@ -141,7 +129,3 @@ void Bootloader_JumpToApplication(uint32_t app_addr) {
    - Ứng dụng Application hoạt động bình thường và ngắt ngoại vi (Timer, UART, GPIO) phản hồi đúng.
 
 ---
-
-## 📄 Giấy Phép (License)
-
-Dự án này được cấp phép theo thư viện [MIT License](LICENSE).
